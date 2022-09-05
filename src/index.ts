@@ -80,7 +80,7 @@ export default async function importFromCDN(relys: IRely[], cdnSource: string): 
             })
             return html.replace(
                 /<\/title>/i,
-                `</title>\n${codes.join(' ')}`
+                `</title>\n    \n    ${codes.join('\n    ')}\n    `
             )
         },
     }
