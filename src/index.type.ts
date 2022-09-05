@@ -6,7 +6,8 @@ export interface IRely{
     integrity?: string | false,
     cors?: boolean,
     isCSS?: boolean,
-    isModule?: boolean
+    isModule?: boolean,
+    relys?: string[]
 }
 export interface IRelyData {
     name: string,

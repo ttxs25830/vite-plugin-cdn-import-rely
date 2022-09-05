@@ -1,4 +1,4 @@
-import { getPackageVersion, getSRIFromURL, renderUrl } from "./utils"
+import { getPackageVersion, getSRIFromURL, relyTreeAnalyze, renderUrl } from "./utils"
 import { ConfigEnv, Plugin, UserConfig } from 'vite'
 import { IRely, IRelyData } from "./index.type"
 import externalGlobals from 'rollup-plugin-external-globals'
@@ -10,7 +10,19 @@ import externalGlobals from 'rollup-plugin-external-globals'
  * @param cdnSource CDN resouce url format
  */
 export default async function importFromCDN(relys: IRely[], cdnSource: string): Promise<Plugin> {
-    const relyDatas = await Promise.all(relys.map(async (rely: IRely): Promise<IRelyData> => {
+    // Check is rely names are unique
+    const relyNameHash: string[] = []
+    relys.forEach((value: IRely) => {
+        if(relyNameHash.indexOf(value.name) != -1){
+            throw new Error(`There are more than one rely called ${value.name}`)
+        }
+        relyNameHash.push(value.name)
+    })
+    // Analyze rely tree
+    const relyQueue = relyTreeAnalyze(relys)
+    // throw new Error("".concat(...relyQueue.map((v) => v.name)))
+    // Render user input data
+    const relyDatas = await Promise.all(relyQueue.map(async (rely: IRely): Promise<IRelyData> => {
         const url = renderUrl(cdnSource, {
             name: rely.name,
             version: (rely.version) ? rely.version : getPackageVersion(rely.name),
@@ -34,6 +46,7 @@ export default async function importFromCDN(relys: IRely[], cdnSource: string): 
             var: rely.var
         }
     }))
+
     return {
         name: "vite-plugin-cdn-import-rely",
         enforce: "pre",
@@ -44,12 +57,14 @@ export default async function importFromCDN(relys: IRely[], cdnSource: string): 
             return {
                 build: {
                     rollupOptions: {
+                        // Insert rollup config
                         plugins: [externalGlobals(globals)]
                     }
                 }
             }
         },
         transformIndexHtml(html) {
+            // Render resource import DOM
             const codes = relyDatas.map((value: IRelyData) => {
                 let code = ""
                 if (value.isCSS) {
