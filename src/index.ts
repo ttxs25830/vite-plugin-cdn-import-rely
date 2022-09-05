@@ -78,9 +78,10 @@ export default async function importFromCDN(relys: IRely[], cdnSource: string): 
                 }
                 return code
             })
+            const div = "\n    "
             return html.replace(
                 /<\/title>/i,
-                `</title>\n    \n    ${codes.join('\n    ')}\n    `
+                `</title>${div}${div}${codes.join(div)}${div}`
             )
         },
     }
