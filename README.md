@@ -54,7 +54,7 @@ export default defineConfig({
 | var | The global variable's name on user space | string | No | / | `"Vue"` |
 | path | The extra path in resource URL | string | No | / | `"vue.global.prod.min.js"` |
 | version | The version of rely package. If not given, it will be resolve from `package-lock.json` | string | Yes | / | `"3.2.38"` |
-| integrity | A SRI string will use to check if the resource is incomplete or modified when this rssource is load by browser | string | Yes | / | `"sha512-npQPwoPEoxzuLDSytF9RIdsHJd122lMGlUoLuQo2vCYtk6R1DEB03wIknFzHNQNHJKQlPjwcrEqflYWp417eVw=="` |
+| integrity | A SRI string will use to check if the resource is incomplete or modified when this rssource is load by browser. Will auto generate SHA-512 SRI if is empty. You can still disable it by set it to false | string or false | Yes | / | `"sha512-npQPwoPEoxzuLDSytF9RIdsHJd122lMGlUoLuQo2vCYtk6R1DEB03wIknFzHNQNHJKQlPjwcrEqflYWp417eVw=="` |
 | cors | If and how we use CORS. CORS will set to `"anonymous"` when this is false, or set to `"use-credentials"` if this is true. When this is empty, CORS will disable if integrity is disable, or set to `"anonymous"` when integrity is enable | boolean | Yes | / | `"anonymous"` |
 | isCSS | Is this rely is css or js | boolean | Yes | false | false |
 | isModule | Reserved for the future | boolean | Yes | false | / |

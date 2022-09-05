@@ -1,5 +1,7 @@
 import path from "path"
 import fs from 'fs'
+import axios from "axios"
+import getSRI from 'get-sri'
 
 /**
  * Get package version from package-lock.json
@@ -44,4 +46,8 @@ export const renderUrl = (base: string, data: {
         base.replace(/\{name\}/g, data.name)
             .replace(/\{version\}/g, data.version)
             .replace(/\{path\}/g, data.path)
+}
+
+export const getSRIFromURL = async (url: string) => {
+    return getSRI((await axios.get(url)).data, getSRI.SHA512, true)
 }
