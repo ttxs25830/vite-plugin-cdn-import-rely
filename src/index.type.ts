@@ -3,7 +3,7 @@ export interface IRely{
     var: string,
     path: string,
     version?: string,
-    integrity?: string,
+    integrity?: string | false,
     cors?: boolean,
     isCSS?: boolean,
     isModule?: boolean
