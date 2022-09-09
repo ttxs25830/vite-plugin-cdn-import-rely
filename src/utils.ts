@@ -13,12 +13,13 @@ export const getPackageVersion = (name: string) => {
     const root = process.cwd()
     const pkglockFile = path.join(root, 'package-lock.json')
     if (fs.existsSync(pkglockFile)) {
-        const pkgs = JSON.parse(fs.readFileSync(pkglockFile, 'utf8'))["dependencies"]
-        if (name in pkgs) {
-            return pkgs[name]["version"]
-        } else {
-            throw new Error(`Package ${name} not found in package-lock.json`)
+        const pkgs = JSON.parse(fs.readFileSync(pkglockFile, 'utf8'))["packages"]
+        for(const i in pkgs) {
+            if(i.endsWith(name)) {
+                return pkgs[i]["version"]
+            }
         }
+        throw new Error(`Package ${name} not found in package-lock.json`)
     } else {
         throw new Error(`Can not find package-lock.json file at ${pkglockFile}`)
     }

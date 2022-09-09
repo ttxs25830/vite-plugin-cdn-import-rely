@@ -1,6 +1,6 @@
 import * as utils from "../src/utils";
 test("GetPackageVersion", () => {
-  expect(utils.getPackageVersion("@ampproject/remapping")).toBe("2.2.0");
+  expect(utils.getPackageVersion("@jridgewell/gen-mapping")).toBe("0.3.2");
 });
 test("GetSRIFromURL", async () => {
   expect(

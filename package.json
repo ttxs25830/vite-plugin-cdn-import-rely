@@ -1,6 +1,6 @@
 {
   "name": "vite-plugin-cdn-import-rely",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "A vite plugin make import rely from CDN easier",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
