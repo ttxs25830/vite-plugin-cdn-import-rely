@@ -20,8 +20,6 @@ export default async function importFromCDN(relys: IRely[], cdnSource: string): 
     })
     // Analyze rely tree
     const relyQueue = relyTreeAnalyze(relys)
-    // throw new Error("".concat(...relyQueue.map((v) => v.name)))
-    // Render user input data
     const relyDatas = await Promise.all(relyQueue.map(async (rely: IRely): Promise<IRelyData> => {
         const url = renderUrl(cdnSource, {
             name: rely.name,
@@ -78,13 +76,7 @@ export default async function importFromCDN(relys: IRely[], cdnSource: string): 
                     code = code.concat(` integrity="${value.integrity}"`)
                 }
                 if (value.cors !== null) {
-                    code = code.concat(`crossorigin="`)
-                    if (value.cors) {
-                        code.concat(`use-credentials`)
-                    } else {
-                        code.concat(`anonymous`)
-                    }
-                    code = code.concat(`"`)
+                    code = code.concat(` crossorigin="${value.cors}"`)
                 }
                 if (value.isCSS) {
                     code = code.concat(` rel="stylesheet">`)
