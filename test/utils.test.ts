@@ -1,6 +1,6 @@
 import * as utils from "../src/utils";
 test("GetPackageVersion", () => {
-  expect(utils.getPackageVersion("@jridgewell/gen-mapping")).toBe("0.3.2");
+  expect(utils.getPackageVersion("@jest/environment")).toBe("29.0.3");
 });
 test("GetSRIFromURL", async () => {
   expect(
@@ -19,89 +19,4 @@ test("RenderURL", () => {
       path: "PATH",
     })
   ).toBe("NAME/VERSION/PATH");
-});
-test("RelyTreeAnalyzeNormal", () => {
-  expect(
-    JSON.stringify(
-      utils.relyTreeAnalyze([
-        {
-          name: "a",
-          var: "",
-          path: "",
-          relys: [],
-        },
-        {
-          name: "b",
-          var: "",
-          path: "",
-          relys: ["c"],
-        },
-        {
-          name: "c",
-          var: "",
-          path: "",
-          relys: ["a"],
-        },
-        {
-          name: "d",
-          var: "",
-          path: "",
-          relys: ["b"],
-        },
-        {
-          name: "e",
-          var: "",
-          path: "",
-          relys: ["a"],
-        },
-      ])
-    )
-  ).toBe(
-    `[{"name":"a","var":"","path":"","relys":[]},{"name":"c","var":"","path":"","relys":["a"]},{"name":"b","var":"","path":"","relys":["c"]},{"name":"e","var":"","path":"","relys":["a"]},{"name":"d","var":"","path":"","relys":["b"]}]`
-  );
-});
-test("RelyTreeAnalyzeWithCircularDependency", () => {
-  expect(() => {
-    utils.relyTreeAnalyze([
-      {
-        name: "a",
-        var: "",
-        path: "",
-      },
-      {
-        name: "b",
-        var: "",
-        path: "",
-        relys: ["c"],
-      },
-      {
-        name: "c",
-        var: "",
-        path: "",
-        relys: ["b"],
-      },
-    ]);
-  }).toThrow("Circular dependency");
-  expect(() => {
-    utils.relyTreeAnalyze([
-      {
-        name: "a",
-        var: "",
-        path: "",
-        relys: ["c"],
-      },
-      {
-        name: "b",
-        var: "",
-        path: "",
-        relys: ["c"],
-      },
-      {
-        name: "c",
-        var: "",
-        path: "",
-        relys: ["b"],
-      },
-    ]);
-  }).toThrow("Circular dependency");
 });

@@ -1,12 +1,94 @@
 import {
+  cssRelyQueueAnalyze,
   getPackageVersion,
   getSRIFromURL,
-  relyTreeAnalyze,
+  jsRelyTreeAnalyze,
+  relyDataIsJS,
   renderUrl,
 } from "./utils";
 import { ConfigEnv, Plugin, UserConfig } from "vite";
-import { IRely, IRelyData } from "./index.type";
+import {
+  IRelyJS,
+  IRelyCSS,
+  IRely,
+  IRelyDataJS,
+  IRelyDataCSS,
+  IRelyData,
+} from "./index.type";
 import externalGlobals from "rollup-plugin-external-globals";
+
+async function dealJSRelys(relys: IRelyJS[], cdnSource: string) {
+  // Analyze rely tree
+  const relyQueue = jsRelyTreeAnalyze(relys);
+  // Resolve datas
+  const relyDatas = await Promise.all(
+    relyQueue.map(async (rely: IRelyJS): Promise<IRelyDataJS> => {
+      const url = renderUrl(cdnSource, {
+        name: rely.name,
+        version: rely.version ? rely.version : getPackageVersion(rely.name),
+        path: rely.path,
+      });
+      const integrity =
+        rely.integrity === false
+          ? null // not use sri
+          : typeof rely.integrity == "string"
+          ? rely.integrity // use user sri
+          : await getSRIFromURL(url); // auto gen sri
+      const cors =
+        typeof rely.cors == "undefined"
+          ? integrity
+            ? "anonymous"
+            : null //Auto set CORS from integrity use stat
+          : rely.cors
+          ? "use-credentials"
+          : "anonymous"; //Use user cors
+      return {
+        name: rely.name,
+        var: rely.var,
+        url: url,
+        integrity: integrity,
+        cors: cors,
+      };
+    })
+  );
+  return relyDatas;
+}
+
+async function dealCSSRelys(relys: IRelyCSS[], cdnSource: string) {
+  // Analyze rely tree
+  const relyQueue = cssRelyQueueAnalyze(relys);
+  // Resolve datas
+  const relyDatas = await Promise.all(
+    relyQueue.map(async (rely: IRelyCSS): Promise<IRelyDataCSS> => {
+      const url = renderUrl(cdnSource, {
+        name: rely.pkgName,
+        version: rely.version ? rely.version : getPackageVersion(rely.pkgName),
+        path: rely.path,
+      });
+      const integrity =
+        rely.integrity === false
+          ? null // not use sri
+          : typeof rely.integrity == "string"
+          ? rely.integrity // use user sri
+          : await getSRIFromURL(url); // auto gen sri
+      const cors =
+        typeof rely.cors == "undefined"
+          ? integrity
+            ? "anonymous"
+            : null //Auto set CORS from integrity use stat
+          : rely.cors
+          ? "use-credentials"
+          : "anonymous"; //Use user cors
+      return {
+        name: rely.name,
+        url: url,
+        integrity: integrity,
+        cors: cors,
+      };
+    })
+  );
+  return relyDatas;
+}
 
 /**
  * Create plugin
@@ -25,39 +107,12 @@ export default async function importFromCDN(
     }
     relyNameHash.push(value.name);
   });
-  // Analyze rely tree
-  const relyQueue = relyTreeAnalyze(relys);
-  const relyDatas = await Promise.all(
-    relyQueue.map(async (rely: IRely): Promise<IRelyData> => {
-      const url = renderUrl(cdnSource, {
-        name: rely.name,
-        version: rely.version ? rely.version : getPackageVersion(rely.name),
-        path: rely.path,
-      });
-      const integrity =
-        rely.integrity === false
-          ? null
-          : typeof rely.integrity == "string"
-          ? rely.integrity
-          : await getSRIFromURL(url);
-      const cors =
-        typeof rely.cors == "undefined"
-          ? integrity
-            ? "anonymous"
-            : null //Auto set CORS from does integrity in use
-          : rely.cors
-          ? "use-credentials"
-          : "anonymous"; //Use user cors
-      return {
-        name: rely.name,
-        url: url,
-        integrity: integrity,
-        cors: cors,
-        isModule: Boolean(rely.isModule),
-        isCSS: Boolean(rely.isCSS),
-        var: rely.var,
-      };
-    })
+  // splite js and css
+  const jsRelys = relys.filter((v) => !Boolean(v.isCSS)) as IRelyJS[];
+  const cssRelys = relys.filter((v) => Boolean(v.isCSS)) as IRelyCSS[];
+  const data = ([] as IRelyData[]).concat(
+    ...(await dealJSRelys(jsRelys, cdnSource)),
+    ...(await dealCSSRelys(cssRelys, cdnSource))
   );
 
   return {
@@ -66,9 +121,7 @@ export default async function importFromCDN(
     apply: "build",
     config: (config: UserConfig, env: ConfigEnv) => {
       let globals: { [index: string]: string } = {};
-      relyDatas.forEach(
-        (value: IRelyData) => (globals[value.name] = value.var)
-      );
+      data.forEach((v) => (globals[v.name] = relyDataIsJS(v) ? v.var : "NaN"));
       return {
         build: {
           rollupOptions: {
@@ -80,25 +133,25 @@ export default async function importFromCDN(
     },
     transformIndexHtml(html) {
       // Render resource import DOM
-      const codes = relyDatas.map((value: IRelyData) => {
+      const codes = data.map((value: IRelyData) => {
         let code = "";
-        if (value.isCSS) {
-          code = code.concat(`<link`);
-          code = code.concat(` href="${value.url}"`);
-        } else {
+        if (relyDataIsJS(value)) {
           code = code.concat(`<script`);
           code = code.concat(` src="${value.url}"`);
+        } else {
+          code = code.concat(`<link`);
+          code = code.concat(` href="${value.url}"`);
         }
-        if (value.integrity) {
+        if (value.integrity !== null) {
           code = code.concat(` integrity="${value.integrity}"`);
         }
         if (value.cors !== null) {
           code = code.concat(` crossorigin="${value.cors}"`);
         }
-        if (value.isCSS) {
-          code = code.concat(` rel="stylesheet">`);
-        } else {
+        if (relyDataIsJS(value)) {
           code = code.concat(`></script>`);
+        } else {
+          code = code.concat(` rel="stylesheet">`);
         }
         return code;
       });

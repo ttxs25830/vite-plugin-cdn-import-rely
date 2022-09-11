@@ -2,7 +2,7 @@ import path from "path";
 import fs from "fs";
 import axios from "axios";
 import getSRI from "get-sri";
-import { IRely } from "./index.type";
+import { IRelyCSS, IRelyData, IRelyDataJS, IRelyJS } from "./index.type";
 
 /**
  * Get package version from package-lock.json
@@ -15,8 +15,10 @@ export const getPackageVersion = (name: string) => {
   if (fs.existsSync(pkglockFile)) {
     const pkgs = JSON.parse(fs.readFileSync(pkglockFile, "utf8"))["packages"];
     for (const i in pkgs) {
-      if (i.endsWith(name)) {
-        return pkgs[i]["version"];
+      if (i == `node_modules/${name}`) {
+        if ("version" in pkgs[i]) {
+          return pkgs[i]["version"];
+        }
       }
     }
     throw new Error(`Package ${name} not found in package-lock.json`);
@@ -55,14 +57,19 @@ export const renderUrl = (
 };
 
 export const getSRIFromURL = async (url: string) => {
-  return getSRI((await axios.get(url)).data, getSRI.SHA512, true);
+  const req = await axios.get(url).catch((reason: any) => {
+    throw new Error(
+      `Fail request to url ${url} with status ${reason.response.status}`
+    );
+  });
+  return getSRI(req.data, getSRI.SHA512, true);
 };
 
 /**
  * Analyze rely tree into a order make every rely
  * will not be loaded before there rely loaded
  */
-export const relyTreeAnalyze = (relys: IRely[]) => {
+export const jsRelyTreeAnalyze = (relys: IRelyJS[]) => {
   let needSort = relys.map((v) => v.name);
   const relation: Record<string, string[]> = {};
   relys.forEach((v) => (relation[v.name] = v.relys ? v.relys : []));
@@ -85,5 +92,11 @@ export const relyTreeAnalyze = (relys: IRely[]) => {
     needSort = needSort.filter((v) => unRelys.indexOf(v) == -1);
     unRelys.forEach((v) => delete relation[v]);
   }
-  return out.map((v) => relys.find((v2) => v2.name == v) as IRely).reverse();
+  return out.map((v) => relys.find((v2) => v2.name == v) as IRelyJS).reverse();
 };
+export const cssRelyQueueAnalyze = (relys: IRelyCSS[]) => {
+  return relys.slice().sort((a,b) => (b.priority?b.priority:0) - (a.priority?a.priority:0))
+}
+export const relyDataIsJS = (data: IRelyData): data is IRelyDataJS => {
+  return 'var' in data
+}
