@@ -52,12 +52,12 @@ test("RelyTreeAnalyzeNormal", () => {
           name: "e",
           var: "",
           path: "",
-          relys: [],
+          relys: ["a"],
         },
       ])
     )
   ).toBe(
-    '[{"name":"a","var":"","path":"","relys":[]},{"name":"c","var":"","path":"","relys":["a"]},{"name":"b","var":"","path":"","relys":["c"]},{"name":"e","var":"","path":"","relys":[]},{"name":"d","var":"","path":"","relys":["b"]}]'
+    `[{"name":"a","var":"","path":"","relys":[]},{"name":"c","var":"","path":"","relys":["a"]},{"name":"b","var":"","path":"","relys":["c"]},{"name":"e","var":"","path":"","relys":["a"]},{"name":"d","var":"","path":"","relys":["b"]}]`
   );
 });
 test("RelyTreeAnalyzeWithCircularDependency", () => {
