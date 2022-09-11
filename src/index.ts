@@ -23,9 +23,10 @@ async function dealJSRelys(relys: IRelyJS[], cdnSource: string) {
   // Resolve datas
   const relyDatas = await Promise.all(
     relyQueue.map(async (rely: IRelyJS): Promise<IRelyDataJS> => {
+      const pkgName = rely.pkgName?rely.pkgName:rely.name
       const url = renderUrl(cdnSource, {
-        name: rely.name,
-        version: rely.version ? rely.version : getPackageVersion(rely.name),
+        name: pkgName,
+        version: rely.version ? rely.version : getPackageVersion(pkgName),
         path: rely.path,
       });
       const integrity =
@@ -60,9 +61,10 @@ async function dealCSSRelys(relys: IRelyCSS[], cdnSource: string) {
   // Resolve datas
   const relyDatas = await Promise.all(
     relyQueue.map(async (rely: IRelyCSS): Promise<IRelyDataCSS> => {
+      const pkgName = rely.pkgName?rely.pkgName:rely.name
       const url = renderUrl(cdnSource, {
-        name: rely.pkgName,
-        version: rely.version ? rely.version : getPackageVersion(rely.pkgName),
+        name: pkgName,
+        version: rely.version ? rely.version : getPackageVersion(pkgName),
         path: rely.path,
       });
       const integrity =

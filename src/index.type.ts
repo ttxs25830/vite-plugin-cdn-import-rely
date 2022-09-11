@@ -2,6 +2,7 @@ export interface IRelyJS {
   name: string;
   var: string;
   path: string;
+  pkgName?: string;
   version?: string;
   integrity?: string | false;
   cors?: boolean;
@@ -11,7 +12,7 @@ export interface IRelyJS {
 export interface IRelyCSS {
   name: string;
   path: string;
-  pkgName: string;
+  pkgName?: string;
   version?: string;
   integrity?: string | false;
   cors?: boolean;

@@ -19,6 +19,13 @@ export default defineConfig({
           relys: ["vue"],
         },
         {
+          name: "element-plus/es/locale/lang/zh-cn",
+          pkgName: "element-plus",
+          var: "ElementPlusLocaleZhCn",
+          path: "locale/zh-cn.min.js",
+          relys: ["element-plus"],
+        },
+        {
           name: "element-plus/dist/index.css",
           pkgName: "element-plus",
           path: "index.min.css",
